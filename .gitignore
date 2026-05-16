@@ -1,0 +1,23 @@
+# البيئة الافتراضية
+venv/
+env/
+
+# ملفات بايثون المؤقتة
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ملفات الموديلات الثقيلة (مهم جداً لـ RAG)
+*.bin
+*.pt
+*.pth
+
+# cache
+.cache/
+.huggingface/
+
+# نظام التشغيل
+.DS_Store
+Thumbs.db

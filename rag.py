@@ -1,0 +1,112 @@
+from sentence_transformers import SentenceTransformer
+from transformers import pipeline
+import faiss
+import numpy as np
+import pandas as pd
+from pathlib import Path
+from datasets import load_dataset
+import torch
+import streamlit as st
+
+
+# 1 load data
+# ds = load_dataset("dtthanh/financial-rag-llama3")
+ds = load_dataset("PatronusAI/financebench")
+# Company + Question + Answer + Evidence
+docs = [
+    f"""
+  Company: {item['company']}
+  Question: {item['question']}
+  Answer: {item['answer']}
+  Evidence: {item['evidence']}
+  """.strip()
+      for item in ds["train"]
+  ]
+
+
+# 2 embedding model
+@st.cache_resource #i used cache to loaded the model  only once.
+def load_embedding_model():
+    return SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
+
+model = load_embedding_model()
+
+
+# 3 embedding dataset
+embedding_dataset= model.encode(docs,convert_to_numpy=True,normalize_embeddings=True) # (N, D)
+
+# 4  FAISS Index
+dimension=embedding_dataset.shape[1]
+index=faiss.IndexFlatIP(dimension) # i used IndexFlatIP beucase normalize_embeddings=True
+
+index.add(embedding_dataset)
+
+# 5 retrieva by using query
+
+def retrieval(q,k=3):
+
+  q_embedding=model.encode(q,convert_to_numpy=True,normalize_embeddings=True)
+
+  q_embedding = np.array(q_embedding).reshape(1, -1) # (1, D)
+
+  distances, indices =index.search(q_embedding,k)
+
+  result=[]
+
+  for i in range(k):
+    doc_index = int(indices[0][i])
+    distance=distances[0][i]
+
+    result.append({
+        "text": docs[doc_index ],
+        "score": float(distance)
+        })
+
+  return result
+
+# 6 generate
+@st.cache_resource
+def load_generator():
+
+    return pipeline(
+        "text-generation",
+        model="Qwen/Qwen2.5-0.5B-Instruct",
+        torch_dtype=torch.float32,
+        device_map="auto"
+    )
+
+generator = load_generator()
+
+# 7 all pipline rag
+
+def rag(query, retrieval_docs):
+  
+#   retrieval_docs=retrieval(query,2)
+
+  context = "\n".join([doc["text"] for doc in retrieval_docs])
+
+  prompt = f"""
+    You are a financial assistant.
+
+    Answer ONLY using the context below.
+    If the answer is not in the context, say: "I don't know based on the provided documents."
+    Context:
+    {context}
+
+    Question:
+    {query}
+
+    Answer in bullet points:
+    """
+
+  output = generator(
+    prompt,
+    max_new_tokens=100,
+    temperature=0.1
+  )
+
+  response = output[0]["generated_text"]
+
+  response = response.replace(prompt, "").strip()
+
+  return response
