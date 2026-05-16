@@ -13,6 +13,14 @@ It combines:
 
 ---
 
+## 🌐 Live Demo
+
+You can try the deployed application here:
+
+[Financial RAG Streamlit App](https://financialrag1.streamlit.app/?utm_source=chatgpt.com)
+
+---
+
 ## System Architecture
 
 ```text

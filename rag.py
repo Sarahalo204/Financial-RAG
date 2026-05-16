@@ -33,13 +33,15 @@ model = load_embedding_model()
 
 
 # 3 embedding dataset
-embedding_dataset= model.encode(docs,convert_to_numpy=True,normalize_embeddings=True) # (N, D)
+@st.cache_resource
+def build_faiss_index(_model, docs):
+    embedding_dataset = _model.encode(docs, convert_to_numpy=True, normalize_embeddings=True)
 
-# 4  FAISS Index
-dimension=embedding_dataset.shape[1]
-index=faiss.IndexFlatIP(dimension) # i used IndexFlatIP beucase normalize_embeddings=True
+    dimension = embedding_dataset.shape[1]
+    index = faiss.IndexFlatIP(dimension)  # i used IndexFlatIP beucase normalize_embeddings=True
+    index.add(embedding_dataset)
 
-index.add(embedding_dataset)
+    return index, embedding_dataset
 
 # 5 retrieva by using query
 
