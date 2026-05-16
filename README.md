@@ -1,4 +1,4 @@
-# Financial RAG System (FAISS + Qwen2.5 + Streamlit)
+# Financial RAG System 
 
 ##  Project Overview
 
