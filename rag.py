@@ -1,30 +1,55 @@
+import json
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
 import faiss
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from datasets import load_dataset
 import torch
 import streamlit as st
 
 
 # 1 load data
-# ds = load_dataset("dtthanh/financial-rag-llama3")
-ds = load_dataset("PatronusAI/financebench")
+# ds = load_dataset("PatronusAI/financebench")
 # Company + Question + Answer + Evidence
-docs = [
-    f"""
-  Company: {item['company']}
-  Question: {item['question']}
-  Answer: {item['answer']}
-  Evidence: {item['evidence']}
-  """.strip()
-      for item in ds["train"]
-  ]
+@st.cache_data
+def load_documents():
+
+    with open("financebenchDataset.txt", "r", encoding="utf-8") as f:
+        docs = json.load(f)
+
+    return docs
 
 
-# 2 embedding model
+raw_docs = load_documents()
+
+# 2 chunking
+def chunk_text(text, chunk_size=300, overlap=50):
+
+    words = text.split()
+
+    chunks = []
+
+    step = chunk_size - overlap
+
+    for i in range(0, len(words), step):
+
+        chunk = " ".join(words[i:i + chunk_size])
+
+        chunks.append(chunk)
+
+    return chunks
+
+chunked_docs = []
+
+for doc in raw_docs:
+
+    chunks = chunk_text(doc)
+
+    chunked_docs.extend(chunks)
+
+
+# 3 embedding model
 @st.cache_resource #i used cache to loaded the model  only once.
 def load_embedding_model():
     return SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
@@ -32,7 +57,7 @@ def load_embedding_model():
 model = load_embedding_model()
 
 
-# 3 embedding dataset
+# 4 embedding dataset
 @st.cache_resource
 def build_faiss_index(_model, docs):
     embedding_dataset = _model.encode(docs, convert_to_numpy=True, normalize_embeddings=True)
@@ -42,6 +67,8 @@ def build_faiss_index(_model, docs):
     index.add(embedding_dataset)
 
     return index, embedding_dataset
+  
+index, embedding_dataset = build_faiss_index(model, chunked_docs)  
 
 # 5 retrieva by using query
 
@@ -60,7 +87,7 @@ def retrieval(q,k=3):
     distance=distances[0][i]
 
     result.append({
-        "text": docs[doc_index ],
+        "text": chunked_docs[doc_index],
         "score": float(distance)
         })
 

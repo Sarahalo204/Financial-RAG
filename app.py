@@ -22,7 +22,7 @@ if st.button("Generate Answer"):
 
         with st.spinner("Generating answer..."):
 
-            docs = retrieval(query, k=2)
+            docs = retrieval(query, k=3)
             
             answer = rag(query, docs)
 
