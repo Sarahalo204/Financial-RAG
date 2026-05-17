@@ -112,7 +112,7 @@ def rag(query, retrieval_docs):
   
 #   retrieval_docs=retrieval(query,2)
 
-  context = "\n".join([doc["text"] for doc in retrieval_docs])
+  context = "\n\\n".join([doc["text"] for doc in retrieval_docs])
 
   prompt = f"""
     You are a financial assistant.
@@ -130,8 +130,8 @@ def rag(query, retrieval_docs):
 
   output = generator(
     prompt,
-    max_new_tokens=100,
-    temperature=0.1
+    max_new_tokens=100
+    # temperature=0.1
   )
 
   response = output[0]["generated_text"]
