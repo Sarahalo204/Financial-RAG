@@ -1,101 +1,218 @@
-# Financial RAG System 
+````md
+#  Financial RAG System
 
 ##  Project Overview
 
-This project is a **Retrieval-Augmented Generation (RAG) system** that answers financial questions using real-world financial datasets.
+This project is a **Retrieval-Augmented Generation (RAG) system** designed to answer financial questions using real-world financial documents.
 
-It combines:
+The system combines:
 
-* Semantic search (Sentence Transformers)
-* Vector database (FAISS)
-* Large Language Model (Qwen2.5)
-* Interactive UI (Streamlit)
+- Semantic search using Sentence Transformers
+- Document chunking with overlap
+- FAISS vector database for similarity search
+- Qwen2.5 Large Language Model for answer generation
+- Interactive Streamlit interface
 
 ---
 
-## 🌐 Live Demo
+## Live Demo
 
 You can try the deployed application here:
 
-[Financial RAG Streamlit App](https://financialrag1.streamlit.app/?utm_source=chatgpt.com)
+[Financial RAG Streamlit App](https://financialrag1.streamlit.app/)
+
 
 ---
 
-## System Architecture
+##  System Architecture
 
 ```text
 User Question
       ↓
-SentenceTransformer Embedding
+Query Embedding
       ↓
 FAISS Similarity Search
       ↓
-Top-K Relevant Documents
+Top-K Relevant Chunks
       ↓
 Prompt Construction
       ↓
-Qwen2.5 LLM (Generator)
+Qwen2.5 Generator
       ↓
 Final Answer
+````
+
+---
+
+##  Dataset
+
+Dataset source:
+
+* FinanceBench dataset from HuggingFace
+* Converted and stored locally in:
+  `financebenchDataset.txt`
+
+The dataset contains financial company reports and question-answer pairs.
+
+### Dataset Fields
+
+| Field    | Description                   |
+| -------- | ----------------------------- |
+| company  | Company name                  |
+| question | Financial question            |
+| answer   | Ground truth answer           |
+| evidence | Supporting financial evidence |
+
+---
+
+##  Data Preprocessing
+
+### 1. Document Loading
+
+The dataset is loaded from a local JSON text file:
+
+```python
+with open("financebenchDataset.txt", "r", encoding="utf-8") as f:
 ```
 
 ---
 
-## Dataset
+### 2. Document Chunking
 
-Used dataset:
+Documents are split into smaller chunks before embedding.
 
+### Chunking Strategy
 
-### Structure
+* Chunk Size: `300 words`
+* Overlap: `50 words`
 
-| Field    | Description               |
-| -------- | ------------------------- |
-| company  | Company name              |
-| question | Financial question        |
-| answer   | Correct/reference answer  |
-| evidence | Supporting financial text |
+This improves:
+
+* retrieval quality
+* semantic matching
+* context relevance
 
 ---
 
-## Models Used
+##  Models Used
 
 ### 1. Embedding Model
 
-* `sentence-transformers/all-mpnet-base-v2`
-* Converts text into dense vectors
-* Normalized for cosine similarity
+Model:
+`sentence-transformers/all-mpnet-base-v2`
+
+Used for:
+
+* semantic embeddings
+* cosine similarity retrieval
+
+Features:
+
+* dense vector representations
+* normalized embeddings
 
 ---
 
 ### 2. Vector Database
 
-* **FAISS (IndexFlatIP)**
-* Fast similarity search using inner product
-* Works with normalized embeddings (cosine similarity)
+FAISS (`IndexFlatIP`)
+
+Used for:
+
+* fast nearest neighbor search
+* cosine similarity retrieval
+
+Why `IndexFlatIP`?
+Because embeddings are normalized using:
+
+```python
+normalize_embeddings=True
+```
 
 ---
 
 ### 3. Generator Model
 
-* `Qwen/Qwen2.5-0.5B-Instruct`
-* Lightweight instruction-tuned LLM
-* Generates final answer using retrieved context
+Model:
+`Qwen/Qwen2.5-0.5B-Instruct`
 
-## Example Usage
+Used for:
+
+* context-aware answer generation
+* RAG-based financial QA
+
+---
+
+## RAG Pipeline Workflow
+
+### Step 1 — Load Documents
+
+Load local financial documents from JSON file.
+
+---
+
+### Step 2 — Chunk Documents
+
+Split large financial texts into overlapping chunks.
+
+---
+
+### Step 3 — Generate Embeddings
+
+Convert chunks into dense vectors using SentenceTransformer.
+
+---
+
+### Step 4 — Build FAISS Index
+
+Store embeddings inside FAISS vector database.
+
+---
+
+### Step 5 — Retrieve Relevant Chunks
+
+* Convert user query into embedding
+* Retrieve Top-K similar chunks
+
+---
+
+### Step 6 — Generate Final Answer
+
+The retrieved chunks are passed into Qwen2.5 as context.
+
+The model answers ONLY using retrieved information.
+
+---
+
+##  Example Usage
 
 ```python
 query = "What was Airbnb's net income in 2023?"
 
 retrieved_docs = retrieval(query, k=3)
+
 print(rag(query, retrieved_docs))
 ```
 
 ---
 
+##  Project Structure
 
-## Installation
+```text
+.
+├── app.py
+├── rag.py
+├── load_data.py
+├── financebenchDataset.txt
+├── requirements.txt
+├── README.md
+```
 
-### Install dependencies
+---
+
+##  Installation
+
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
@@ -103,7 +220,7 @@ pip install -r requirements.txt
 
 ---
 
-## Run the App
+##  Run the Application
 
 ```bash
 streamlit run app.py
@@ -111,20 +228,22 @@ streamlit run app.py
 
 ---
 
-## Project Structure
+##  Technologies Used
 
-```text
-.
-├── app.py
-├── rag.py
-├── requirements.txt
-├── README.md
-```
+* Python
+* Streamlit
+* FAISS
+* Sentence Transformers
+* HuggingFace Transformers
+* Qwen2.5
+* NumPy
+* PyTorch
 
 ---
 
-## Author
+##  Author
 
 Sarah Alowjan
 
----
+```
+```
