@@ -1,4 +1,3 @@
-````md
 #  Financial RAG System
 
 ##  Project Overview
@@ -21,6 +20,9 @@ You can try the deployed application here:
 
 [Financial RAG Streamlit App](https://financialrag1.streamlit.app/)
 
+<img width="938" height="275" alt="image" src="https://github.com/user-attachments/assets/11b02a4d-a8b3-490a-8cd2-87d5c3bfc448" />
+
+<img width="911" height="210" alt="image" src="https://github.com/user-attachments/assets/5cdcde18-d23f-4c17-ac23-f03fea91f3ee" />
 
 ---
 
