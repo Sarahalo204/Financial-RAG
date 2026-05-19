@@ -130,7 +130,8 @@ def rag(query, retrieval_docs):
 
   output = generator(
     prompt,
-    max_new_tokens=100
+    max_new_tokens=100,
+    max_length=None
     # temperature=0.1
   )
 
